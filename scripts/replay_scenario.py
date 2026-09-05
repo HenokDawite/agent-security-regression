@@ -8,7 +8,7 @@ from agent_security.replay import ReplayAbort, ReplayError, replay_scenario
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python scripts/replay_scenario.py scenario1|scenario2|scenario3 N")
+        print("Usage: python scripts/replay_scenario.py scenario1|scenario2|scenario3|scenario4|scenario4b N")
         raise SystemExit(2)
     try:
         n = int(sys.argv[2])

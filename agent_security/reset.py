@@ -15,6 +15,14 @@ def reset_scenario(scenario_id):
         raise ResetError(f"No reset config for {scenario_id}")
 
     try:
+        for rel in reset.get("clean_dirs", []):
+            path = REPO_ROOT / rel
+            if path.is_dir():
+                shutil.rmtree(path)
+            elif path.is_file():
+                path.unlink()
+            path.mkdir(parents=True, exist_ok=True)
+
         for rel, contents in reset.get("restore_files", {}).items():
             path = REPO_ROOT / rel
             path.parent.mkdir(parents=True, exist_ok=True)
