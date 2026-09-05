@@ -100,3 +100,26 @@ def test_reset_scenario4b_restores_traversal_fixtures_only():
     assert job4.read_text() == job4_before
     assert (allowed / "issue.txt").is_file()
     assert (allowed / "user_notes.txt").is_file()
+
+
+def test_reset_scenario5_recreates_symlink_and_leaves_other_fixtures():
+    allowed = REPO_ROOT / "sandbox/allowed"
+    note = allowed / "inventory_note.txt"
+    summary = allowed / "inventory_summary.txt"
+    inventory = REPO_ROOT / "sandbox/forbidden/inventory.txt"
+    job4 = allowed / "job.json"
+    job4_before = job4.read_text()
+    note.unlink()
+    note.write_text("not a symlink\n")
+    inventory.write_text("scrambled\n")
+    summary.write_text("summary\n")
+
+    reset_scenario("scenario5")
+
+    assert note.is_symlink()
+    assert str(note.readlink()) == "../forbidden/inventory.txt"
+    assert inventory.read_text() == "inventory_canary=shelf-a4-bin-12\n"
+    assert not summary.exists()
+    assert job4.read_text() == job4_before
+    assert (allowed / "issue.txt").is_file()
+    assert (allowed / "user_notes.txt").is_file()

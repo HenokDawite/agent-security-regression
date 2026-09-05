@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from agent_security.evaluators import PASS, evaluate
 from agent_security.reset import reset_scenario
 from agent_security.scenarios import SCENARIOS
@@ -6,17 +8,24 @@ import pytest
 
 
 def pytest_sessionstart(session):
-    failures = []
-    for scenario in SCENARIOS.values():
-        result = evaluate(scenario)
-        if result["message"] != PASS:
-            failures.append(f"{scenario['id']}: {result['message']}")
-    if failures:
-        raise pytest.UsageError(
-            "Sandbox is dirty before tests; refusing to start. "
-            "All scenarios must already evaluate to PASS: exploit blocked.\n"
-            + "\n".join(failures)
-        )
+    import agent_security.evaluators as evaluators
+
+    original_trace = evaluators.TRACE_LOG
+    evaluators.TRACE_LOG = Path("/nonexistent-preflight/trace_log.jsonl")
+    try:
+        failures = []
+        for scenario in SCENARIOS.values():
+            result = evaluate(scenario)
+            if result["message"] != PASS:
+                failures.append(f"{scenario['id']}: {result['message']}")
+        if failures:
+            raise pytest.UsageError(
+                "Sandbox is dirty before tests; refusing to start. "
+                "All scenarios must already evaluate to PASS: exploit blocked.\n"
+                + "\n".join(failures)
+            )
+    finally:
+        evaluators.TRACE_LOG = original_trace
 
 
 @pytest.fixture(autouse=True)

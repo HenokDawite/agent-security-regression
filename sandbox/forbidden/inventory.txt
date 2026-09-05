@@ -1,0 +1,1 @@
+inventory_canary=shelf-a4-bin-12

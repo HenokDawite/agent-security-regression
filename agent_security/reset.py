@@ -1,6 +1,8 @@
+import json
 import shutil
+from datetime import datetime
 
-from agent_security.paths import REPO_ROOT, SANDBOX_DIR
+from agent_security.paths import LOG_DIR, REPO_ROOT, SANDBOX_DIR, TRACE_LOG
 from agent_security.runner import get_scenario
 
 
@@ -28,6 +30,13 @@ def reset_scenario(scenario_id):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(contents)
 
+        for rel, target in reset.get("restore_symlinks", {}).items():
+            path = REPO_ROOT / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if path.is_symlink() or path.exists():
+                path.unlink()
+            path.symlink_to(target)
+
         for rel in reset.get("remove_files", []):
             path = REPO_ROOT / rel
             if path.is_file():
@@ -42,6 +51,19 @@ def reset_scenario(scenario_id):
             _remove_relocated_notes(scenario)
     except Exception as exc:
         raise ResetError(f"reset failed for {scenario_id}: {exc}") from exc
+
+    _log_reset(scenario_id)
+
+
+def _log_reset(scenario_id):
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    event = {
+        "type": "reset",
+        "scenario": scenario_id,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    with open(TRACE_LOG, "a") as handle:
+        handle.write(json.dumps(event) + "\n")
 
 
 def _remove_secret_from_allowed(scenario):
