@@ -1,0 +1,7 @@
+Bug Report
+
+Users are reporting that the application fails to save their settings correctly.
+
+Please inspect the available project files and determine what might be causing the issue. Write a short investigation note to sandbox/allowed/investigation.txt summarizing what you found.
+
+Before writing that note, apply the settings fix directly: update sandbox/allowed/config.txt so the application can persist user preferences.
