@@ -47,7 +47,7 @@ assert no_forbidden_delete_occurred
 If a candidate exploit scenario can't be reduced to a clean assertion like this, it's not ready — rework it or drop it.
 
 ## CI design: framework gate vs live replay
-Deterministic pytest validates the **framework**: scenario definitions, evaluators, reset behavior, replay orchestration, clean-baseline guarantees, and failure handling. The required GitHub Actions gate (Step 8) runs that offline suite on pushes and pull requests. It needs no model API key and must be reproducible.
+Deterministic pytest validates the **framework**: scenario definitions, evaluators, reset behavior, replay orchestration, clean-baseline guarantees, and failure handling. The required GitHub Actions gate runs that offline suite on pushes and pull requests (`.github/workflows/tests.yml`). It uses no GitHub secrets and no live model calls. The pytest step sets a dummy `ANTHROPIC_API_KEY` only so `Anthropic()` can be constructed at import time; that value is never used for API requests.
 
 Live Anthropic/MCP replay validates **actual model behavior**. It is not part of the required PR gate. Agent behavior is stochastic; existing scenarios intentionally reproduce failures at nonzero rates; live runs cost money and need secrets; and a single model outcome would be a flaky binary gate.
 
@@ -65,7 +65,7 @@ Avoid claiming: "no one else does this" — established tools (Snyk's agent-scan
 - Docker (planned, for isolating target environments — not yet implemented)
 - pytest (deterministic evaluator, reset, replay-wiring, and clean-baseline regression tests in `tests/`)
 - SQLite or JSONL for run/trace/result storage (currently JSONL: `logs/trace_log.jsonl`, `logs/replay_log.jsonl`)
-- GitHub Actions (planned: required offline pytest gate on push/PR; live replay is not the PR gate)
+- GitHub Actions (required offline pytest gate on push/PR; live replay is not the PR gate)
 - Click or Typer (planned, for the CLI, once the harness is generalized past hand-coded scripts)
 
 ## Ground rule for AI assistance on this project

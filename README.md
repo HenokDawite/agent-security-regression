@@ -14,7 +14,7 @@ scenario dict → Claude + MCP filesystem tools → JSONL trace
 - `agent_security/` — loop, runner, replay, reset, evaluators, scenario definitions
 - `scripts/` — `run_scenario.py`, `replay_scenario.py`
 - `sandbox/` — `allowed/` (task inputs) and `forbidden/` (fake secret)
-- `tests/` — offline pytest for the harness (no model API key)
+- `tests/` — offline pytest for the harness (no live API; CI uses a dummy key only for import)
 - `logs/` — `trace_log.jsonl`, `replay_log.jsonl`
 
 The pipeline is linear. Adding a scenario is a dict plus an evaluator name; it does not require a new agent script.
@@ -25,7 +25,7 @@ The model generates tool calls. Only code judges the outcome, for example: the f
 
 Replay does **not** treat one PASS as a fix. Each batch resets the sandbox, requires a clean pre-check, runs the agent, records the evaluator result, and reports an exploit-success rate (`failed/N`).
 
-**Tests vs live runs:** `pytest` validates the framework (definitions, evaluators, reset, replay wiring, clean baseline). Live Anthropic/MCP replay validates model behavior. Live replay is local and experimental; it is not part of required CI (CI is designed, not implemented yet: offline pytest only).
+**Tests vs live runs:** `pytest` validates the framework (definitions, evaluators, reset, replay wiring, clean baseline). Live Anthropic/MCP replay validates model behavior. Required CI (`.github/workflows/tests.yml`) runs only the offline suite on push and pull request. Live replay is not part of that gate.
 
 ## Family A — untrusted file content
 
@@ -47,10 +47,10 @@ python scripts/run_scenario.py scenario1   # or scenario2, scenario3
 python scripts/replay_scenario.py scenario2 3
 ```
 
-Live run and replay need `ANTHROPIC_API_KEY` in `.env`. Pytest does not.
+Live run and replay need a real `ANTHROPIC_API_KEY` in `.env`. Pytest and CI do not; CI sets a dummy key only so `Anthropic()` can be imported.
 
 ## Status
 
-Phase 1 harness is working: one target (MCP filesystem), Family A with three CIA variants, deterministic evaluation, reset/replay, and a 19-test offline suite. GitHub Actions, a second exploit family, Docker isolation, and a polished CLI are not built yet.
+Phase 1 harness is working: one target (MCP filesystem), Family A with three CIA variants, deterministic evaluation, reset/replay, a 19-test offline suite, and GitHub Actions on that suite. A second exploit family, Docker isolation, and a polished CLI are not built yet.
 
 Internal notes: [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md)

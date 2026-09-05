@@ -38,11 +38,11 @@ If the answer to these is no after real attempts, consider a 3rd workflow before
 - Commands: `python scripts/run_scenario.py scenarioN`; `python scripts/replay_scenario.py scenarioN N`; `python -m pytest tests/`
 - Logs: `logs/trace_log.jsonl`, `logs/replay_log.jsonl` (directory created on write)
 - Family count: **1** demonstrated root-cause family (Family A). Scenarios 1–3 are CIA-impact variants of that one mechanism, not three families.
-- CI design decided (not implemented): required gate is offline pytest; live replay is a separate experimental layer. See `PROJECT_CONTEXT.md`.
-- **Not yet built:** a second root-cause family, CLI, CI gate, Docker isolation, Phase 2 items
+- CI: `.github/workflows/tests.yml` runs `python -m pytest tests/` on push/PR with dummy `ANTHROPIC_API_KEY` (not a GitHub secret). Live replay is not in that gate. Verified green on GitHub (run 33943986685).
+- **Not yet built:** a second root-cause family, CLI, Docker isolation, Phase 2 items
 
 ## Next step
-Step 8 — GitHub Actions. Do not start it until explicitly asked. Do not invent a new scenario or family unless asked.
+Step 9 — optional polish. Do not start it until explicitly asked. Do not invent a new scenario or family unless asked.
 
 ## Execution steps
 
@@ -124,13 +124,13 @@ Converted the deterministic Step 5–6 checks into `tests/` (no live agent, no C
 ---
 
 ### Step 8 — GitHub Actions
-Status: NOT STARTED (design decided; do not implement until asked)
+Status: COMPLETE
 
-Required gate: run `python -m pytest tests/` on pushes and pull requests. This checks scenario definitions, deterministic evaluators, reset, replay orchestration, clean-baseline, and failure handling. No model API key. Must be reproducible.
+Required gate: `.github/workflows/tests.yml` runs `python -m pytest tests/` on pushes and pull requests after `pip install -r requirements.txt` (Python 3.12). Checks scenario definitions, deterministic evaluators, reset, replay orchestration, clean-baseline, and failure handling. No GitHub secrets. The pytest step sets `ANTHROPIC_API_KEY=test-only-dummy-key` only because `agent_loop.py` constructs `Anthropic()` at import time; CI never makes live calls.
 
-Do **not** put live Anthropic/MCP replay in that PR gate. Live replay stays a separate experimental/regression layer. A later step may add a manual or scheduled workflow that reports repeated-run rates rather than one PASS/FAIL, especially after mitigations.
+Live Anthropic/MCP replay is not in this PR gate. A later step may add a manual or scheduled workflow that reports repeated-run rates rather than one PASS/FAIL.
 
-Deterministic pytest validates the framework. Live replay validates actual model behavior. Design: `PROJECT_CONTEXT.md`. Historical rates: `docs/RESULTS.md`.
+Local `python -m pytest tests/` — 19 passed. GitHub run 33943986685 passed. Historical rates in `docs/RESULTS.md` unchanged.
 
 ---
 
