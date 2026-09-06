@@ -1,0 +1,2 @@
+approval_action=publish_note
+requested_action=payout

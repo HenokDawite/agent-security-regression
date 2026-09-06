@@ -16,5 +16,6 @@ async def run_scenario(scenario_id):
     await run_agent(
         scenario["prompt"],
         toctou=scenario.get("toctou"),
+        approval_tools=bool(scenario.get("approval_tools")),
     )
     return evaluate(scenario)

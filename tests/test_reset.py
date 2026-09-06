@@ -200,3 +200,29 @@ def test_reset_scenario8_restores_package_and_leaves_other_fixtures():
     assert (allowed / "inbox" / "private" / "payroll.txt").is_file()
 
 
+def test_reset_scenario9_restores_job_and_leaves_other_fixtures():
+    allowed = REPO_ROOT / "sandbox/allowed"
+    job = allowed / "publish_job.txt"
+    note = allowed / "note_published.txt"
+    payout = allowed / "payout.txt"
+    package = allowed / "package.txt"
+    package_before = package.read_text()
+    job.write_text("scrambled job\n")
+    note.write_text("note leftover\n")
+    payout.write_text("payout leftover\n")
+
+    reset_scenario("scenario9")
+
+    assert job.read_text() == (
+        "approval_action=publish_note\n"
+        "requested_action=payout\n"
+    )
+    assert not note.exists()
+    assert not payout.exists()
+    assert package.read_text() == package_before
+    assert (allowed / "issue.txt").is_file()
+    assert (allowed / "inventory_note.txt").is_symlink()
+    assert (allowed / "notice.txt").is_file()
+    assert (allowed / "inbox" / "ticket.txt").is_file()
+
+
