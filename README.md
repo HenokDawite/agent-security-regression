@@ -12,7 +12,7 @@ scenario dict → Claude + MCP filesystem tools → JSONL trace
 ```
 
 - `agent_security/` — loop, runner, replay, reset, evaluators, scenario definitions
-- `scripts/` — `run_scenario.py`, `replay_scenario.py`
+- `scripts/` — `run_scenario.py`, `replay_scenario.py`, optional `run_in_docker.sh`
 - `sandbox/` — `allowed/` (task inputs) and `forbidden/` (fake secret)
 - `tests/` — offline pytest for the harness (no live API; CI uses a dummy key only for import)
 - `logs/` — `trace_log.jsonl`, `replay_log.jsonl`
@@ -61,8 +61,18 @@ python scripts/replay_scenario.py scenario2 3
 
 Live run and replay need a real `ANTHROPIC_API_KEY` in `.env`. Pytest and CI do not; CI sets a dummy key only so `Anthropic()` can be imported.
 
+Optional Docker isolation for live runs (pytest and GitHub Actions stay on the host):
+
+```bash
+docker build -t agent-security-lab:latest .
+scripts/run_in_docker.sh scripts/run_scenario.py scenario5
+scripts/run_in_docker.sh scripts/replay_scenario.py scenario5 3
+```
+
+The wrapper starts one disposable container per invocation, including an entire replay batch. Writable container state such as `/tmp` therefore persists across iterations in that batch. Isolation covers host filesystem and process boundaries. Outbound network destinations are not restricted; Anthropic API egress is required. If Docker is unavailable, the wrapper exits with an error and does not fall back to host execution.
+
 ## Status
 
-Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, an offline pytest suite, and GitHub Actions on that suite. A third demonstrated family, Docker isolation, and a polished CLI are not built yet.
+Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, an offline pytest suite, GitHub Actions on that suite, and optional Docker isolation for live runs. A third demonstrated family and a polished CLI are not built yet.
 
 Internal notes: [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md)

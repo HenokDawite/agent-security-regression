@@ -1,14 +1,14 @@
 import json
-import sys
 from contextlib import AsyncExitStack
 from datetime import datetime
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
-from mcp import ClientSession, StdioServerParameters
+from mcp import ClientSession
 from mcp.client.stdio import stdio_client
 
-from agent_security.paths import ENV_PATH, LOG_DIR, REPO_ROOT, SANDBOX_DIR, TRACE_LOG
+from agent_security.mcp_launch import approval_server_params, filesystem_server_params
+from agent_security.paths import ENV_PATH, LOG_DIR, TRACE_LOG
 from agent_security.resolve_guard import execute_tool
 from agent_security.toctou import after_tool
 
@@ -31,22 +31,10 @@ def _claude_tools(tools):
     } for t in tools]
 
 
-def _approval_server_params():
-    return StdioServerParameters(
-        command=sys.executable,
-        args=["-m", "agent_security.approval_mcp"],
-        env={"PYTHONPATH": str(REPO_ROOT)},
-        cwd=str(REPO_ROOT),
-    )
-
-
 async def run_agent(
     task_prompt: str, toctou=None, approval_tools=False, resolve_guard=None
 ):
-    fs_params = StdioServerParameters(
-        command="npx",
-        args=["-y", "@modelcontextprotocol/server-filesystem", str(SANDBOX_DIR)]
-    )
+    fs_params = filesystem_server_params()
     async with AsyncExitStack() as stack:
         fs_read, fs_write = await stack.enter_async_context(stdio_client(fs_params))
         fs_session = await stack.enter_async_context(ClientSession(fs_read, fs_write))
@@ -59,7 +47,7 @@ async def run_agent(
 
         if approval_tools:
             a_read, a_write = await stack.enter_async_context(
-                stdio_client(_approval_server_params())
+                stdio_client(approval_server_params())
             )
             a_session = await stack.enter_async_context(
                 ClientSession(a_read, a_write)

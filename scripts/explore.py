@@ -4,17 +4,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mcp import ClientSession, StdioServerParameters
+from mcp import ClientSession
 from mcp.client.stdio import stdio_client
 
-from agent_security.paths import SANDBOX_DIR
+from agent_security.mcp_launch import filesystem_server_params
 
 
 async def main():
-    server_params = StdioServerParameters(
-        command="npx",
-        args=["-y", "@modelcontextprotocol/server-filesystem", str(SANDBOX_DIR)]
-    )
+    server_params = filesystem_server_params()
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()

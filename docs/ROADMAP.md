@@ -35,15 +35,16 @@ If the answer to these is no after real attempts, consider a 3rd workflow before
 - `scripts/explore.py` — lists MCP filesystem server's available tools
 - Package layout: `agent_security/` (loop, runner, replay, reset, evaluators, scenarios, shared `paths.py`); entry points in `scripts/`
 - Shared paths: `REPO_ROOT`, `SANDBOX_DIR`, `LOG_DIR`, `ENV_PATH` in `agent_security/paths.py`
-- Commands: `python scripts/run_scenario.py scenarioN`; `python scripts/replay_scenario.py scenarioN N`; `python -m pytest tests/`
+- Commands: `python scripts/run_scenario.py scenarioN`; `python scripts/replay_scenario.py scenarioN N`; `python -m pytest tests/`; optional `scripts/run_in_docker.sh` for live runs
 - Logs: `logs/trace_log.jsonl`, `logs/replay_log.jsonl` (directory created on write)
 - Demonstrated-family count: **2 of 3–4** (Family A and Family C). Family B Scenario 4 **0/4**; Scenario 4b **0/4**. Family C Scenario 5 **4/4**. Family D Scenario 6 **0/4**. Family E Scenario 7 **0/4**. Family F Scenario 8 **0/4**. Family G Scenario 9 **0/4**. Family H Scenario 10 **0/4**. Existing A–G rates unchanged.
 - CI: `.github/workflows/tests.yml` runs `python -m pytest tests/` on push/PR with dummy `ANTHROPIC_API_KEY` (not a GitHub secret). Live replay is not in that gate. Verified green on GitHub.
 - Family C mitigation: configurable `denied_read_roots` guard in `run_agent`. Scenario 5 configures `forbidden/`. Historical **4/4** and `resolved_read_not_under` are preserved. Post-mitigation live+replay is **0/4** on `resolved_read_not_executed_under`.
-- **Not yet built:** a third *demonstrated* failure family, Family H/G/F/E documentation steps, optional polish (CLI, Docker isolation, Pydantic, SQLite), Phase 2 items
+- Docker isolation: optional for live Anthropic + MCP runs (`Dockerfile`, `scripts/run_in_docker.sh`). Offline pytest and GitHub Actions stay host-based. Isolates host filesystem/process boundaries, not outbound network destinations. One container per CLI invocation, including an entire replay batch (`/tmp` persists across iterations in that batch).
+- **Not yet built:** a third *demonstrated* failure family, remaining optional polish (CLI, Pydantic, SQLite), Phase 2 items
 
 ## Next step
-Document Family H (Step 37) when asked. Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start Docker, Pydantic, SQLite, or optional polish until asked.
+Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start Pydantic, SQLite, CLI-framework, Compose, Kubernetes, custom seccomp, or network allowlisting until asked.
 
 ## Execution steps
 
@@ -371,12 +372,24 @@ Status: COMPLETE
 ---
 
 ### Step 17 — Optional polish
-Status: NOT STARTED (blocked on an explicit request)
+Status: IN PROGRESS (Docker isolation is done; remaining items blocked on an explicit request)
 
-Only after Family B, Family C, Family D, and Family E are designed, implemented, replay-tested, and documented:
-- CLI
-- Docker isolation
-- additional workflows
-- benchmark table
-- architecture diagram
-- README/demo
+Completed from this list: Docker isolation for live runs (Step 40).
+Still not started: CLI, additional workflows, benchmark table, architecture diagram, README/demo polish, Pydantic, SQLite.
+
+---
+
+### Step 40 — Docker isolation for live runs
+Status: COMPLETE
+
+Optional jail for live Anthropic + MCP runs. Offline pytest and `.github/workflows/tests.yml` stay on the host.
+
+- `Dockerfile` + `.dockerignore`: Python 3.12, Node only to run the filesystem MCP installed at image build time (`MCP_FILESYSTEM_BIN`), no `.env` in the image
+- `scripts/run_in_docker.sh`: one `--rm` container per CLI invocation, including an entire replay batch; `--read-only` rootfs; `--cap-drop ALL`; `--security-opt no-new-privileges`; tmpfs `/tmp`; PID/memory limits; no ports; no Docker socket
+- Mounts only `sandbox/` → `/app/sandbox` and `logs/` → `/app/logs` (rw). The rest of `/app` is the image copy
+- Injects only `ANTHROPIC_API_KEY`. Filesystem and approval MCP subprocesses receive an env copy without that key
+- Host uid/gid is passed through so bind-mounted directories stay writable on Linux
+- Missing Docker is a hard error; the wrapper never falls back to host execution
+- Isolation covers host filesystem/process boundaries, not outbound network destinations. `/tmp` persists across replay iterations in the same container
+
+Host commands are unchanged: `python scripts/run_scenario.py …` and `python scripts/replay_scenario.py …`.
