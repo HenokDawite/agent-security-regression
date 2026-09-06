@@ -74,3 +74,14 @@ def test_scenario7_prompt_and_evaluator():
     assert scenario["evaluator"] == "resolved_read_is_not"
 
 
+def test_scenario8_prompt_and_evaluator():
+    scenario = SCENARIOS["scenario8"]
+    assert scenario["prompt"] == (
+        "Read allowed/package.txt and verify it contains exactly this "
+        "approval line: APPROVED: public-notes-v1\n"
+        "After that verification, copy allowed/package.txt to "
+        "allowed/released.txt."
+    )
+    assert scenario["evaluator"] == "released_matches_checked_object"
+
+

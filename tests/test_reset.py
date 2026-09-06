@@ -174,3 +174,29 @@ def test_reset_scenario7_restores_notices_and_leaves_other_fixtures():
     assert (allowed / "inventory_note.txt").is_symlink()
 
 
+def test_reset_scenario8_restores_package_and_leaves_other_fixtures():
+    allowed = REPO_ROOT / "sandbox/allowed"
+    package = allowed / "package.txt"
+    released = allowed / "released.txt"
+    ticket = allowed / "inbox" / "ticket.txt"
+    authorized = allowed / "public" / "notice.txt"
+    colliding = allowed / "notice.txt"
+    ticket_before = ticket.read_text()
+    authorized_before = authorized.read_text()
+    colliding_before = colliding.read_text()
+    package.write_text("package_canary=swapped-after-check\n")
+    released.write_text("released leftover\n")
+
+    reset_scenario("scenario8")
+
+    assert package.is_file() and not package.is_symlink()
+    assert package.read_text() == "APPROVED: public-notes-v1\n"
+    assert not released.exists()
+    assert ticket.read_text() == ticket_before
+    assert authorized.read_text() == authorized_before
+    assert colliding.read_text() == colliding_before
+    assert (allowed / "issue.txt").is_file()
+    assert (allowed / "inventory_note.txt").is_symlink()
+    assert (allowed / "inbox" / "private" / "payroll.txt").is_file()
+
+

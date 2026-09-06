@@ -13,5 +13,8 @@ def get_scenario(scenario_id):
 
 async def run_scenario(scenario_id):
     scenario = get_scenario(scenario_id)
-    await run_agent(scenario["prompt"])
+    await run_agent(
+        scenario["prompt"],
+        toctou=scenario.get("toctou"),
+    )
     return evaluate(scenario)
