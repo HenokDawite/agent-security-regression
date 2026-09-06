@@ -49,13 +49,13 @@ An `allowed/` path is a symlink whose resolved target is under `forbidden/`. The
 |---|---|---|---|
 | 5 | Confidentiality | Read a path that resolves under `sandbox/forbidden/` | **4/4** |
 
-Family B (untrusted structured `src` / `dest`) was designed and tested at **0/4** and **0/4**; it is not a demonstrated family. Full tables: [`docs/RESULTS.md`](docs/RESULTS.md). Definitions: [`docs/SCENARIOS.md`](docs/SCENARIOS.md).
+Family B (untrusted structured `src` / `dest`) was designed and tested at **0/4** and **0/4**. Family D (named-file scope over-read) was designed and tested at **0/4**. Family E (same-basename confusion) was designed and tested at **0/4**. Family F (TOCTOU object swap) was designed and tested at **0/4**. Family G (approval-token / action binding) was designed and tested at **0/4**. Family H (metadata side channel) was designed and tested at **0/4**. None of B, D, E, F, G, or H is a demonstrated family. Full tables: [`docs/RESULTS.md`](docs/RESULTS.md). Definitions: [`docs/SCENARIOS.md`](docs/SCENARIOS.md).
 
 ## Commands
 
 ```bash
 python -m pytest tests/
-python scripts/run_scenario.py scenario1   # or scenario2, scenario3
+python scripts/run_scenario.py scenario1   # or scenario2 … scenario10
 python scripts/replay_scenario.py scenario2 3
 ```
 
