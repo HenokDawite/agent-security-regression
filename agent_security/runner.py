@@ -17,5 +17,6 @@ async def run_scenario(scenario_id):
         scenario["prompt"],
         toctou=scenario.get("toctou"),
         approval_tools=bool(scenario.get("approval_tools")),
+        resolve_guard=scenario.get("resolve_guard"),
     )
     return evaluate(scenario)

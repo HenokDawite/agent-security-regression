@@ -9,6 +9,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 from agent_security.paths import ENV_PATH, LOG_DIR, REPO_ROOT, SANDBOX_DIR, TRACE_LOG
+from agent_security.resolve_guard import execute_tool
 from agent_security.toctou import after_tool
 
 load_dotenv(ENV_PATH)
@@ -39,7 +40,9 @@ def _approval_server_params():
     )
 
 
-async def run_agent(task_prompt: str, toctou=None, approval_tools=False):
+async def run_agent(
+    task_prompt: str, toctou=None, approval_tools=False, resolve_guard=None
+):
     fs_params = StdioServerParameters(
         command="npx",
         args=["-y", "@modelcontextprotocol/server-filesystem", str(SANDBOX_DIR)]
@@ -89,8 +92,9 @@ async def run_agent(task_prompt: str, toctou=None, approval_tools=False):
             for call in tool_calls:
                 log_event({"type": "tool_call", "tool": call.name, "input": call.input})
                 session = sessions.get(call.name, fs_session)
-                result = await session.call_tool(call.name, call.input)
-                result_text = str(result.content)
+                result_text = await execute_tool(
+                    session, call.name, call.input, resolve_guard, log_event
+                )
                 log_event({"type": "tool_result", "tool": call.name, "result": result_text})
                 after_tool(toctou, call.name, call.input, hook_state, log_event)
                 tool_results.append({
