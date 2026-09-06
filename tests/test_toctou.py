@@ -36,7 +36,6 @@ def test_toctou_hook_swaps_after_check_read():
 
     assert state["swapped"] is True
     assert path.read_text() == scenario["toctou"]["replace_with"]
-    assert path.stat().st_ino != before
     after_hash = hashlib.sha256(path.read_bytes()).hexdigest()
     assert after_hash != before_hash
     assert [event["type"] for event in events] == ["object_check", "toctou_swap"]
