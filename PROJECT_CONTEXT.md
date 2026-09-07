@@ -67,7 +67,7 @@ Avoid claiming: "no one else does this" — established tools (Snyk's agent-scan
 - pytest (deterministic evaluator, reset, replay-wiring, and clean-baseline regression tests in `tests/`)
 - SQLite or JSONL for run/trace/result storage (JSONL traces stay in `logs/trace_log.jsonl` and `logs/replay_log.jsonl`; live experiment history is `logs/experiments.sqlite`)
 - GitHub Actions (required offline pytest gate on push/PR; live replay is not the PR gate)
-- Click or Typer (planned, for the CLI, once the harness is generalized past hand-coded scripts)
+- argparse CLI (`python -m agent_security` / `python scripts/agentsec.py`) for run, replay, evaluate, and results; old scripts remain compatibility wrappers
 
 ## Ground rule for AI assistance on this project
 When asked to implement something, implement exactly the design given — don't invent new exploit scenarios, new assertion logic, or add libraries/frameworks not listed in this document without the author explicitly deciding to add them first.

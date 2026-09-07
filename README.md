@@ -11,8 +11,8 @@ scenario dict → Claude + MCP filesystem tools → JSONL trace
        → deterministic evaluator → reset → replay N times → rate
 ```
 
-- `agent_security/` — loop, runner, replay, reset, evaluators, Pydantic-validated scenario definitions
-- `scripts/` — `run_scenario.py`, `replay_scenario.py`, optional `run_in_docker.sh`
+- `agent_security/` — loop, runner, replay, reset, evaluators, Pydantic-validated scenario definitions, argparse CLI
+- `scripts/` — `agentsec.py`, compatibility `run_scenario.py` / `replay_scenario.py`, optional `run_in_docker.sh`
 - `sandbox/` — `allowed/` (task inputs) and `forbidden/` (fake secret)
 - `tests/` — offline pytest for the harness (no live API; CI uses a dummy key only for import)
 - `logs/` — `trace_log.jsonl`, `replay_log.jsonl`, optional `experiments.sqlite`
@@ -55,24 +55,28 @@ Family B (untrusted structured `src` / `dest`) was designed and tested at **0/4*
 
 ```bash
 python -m pytest tests/
-python scripts/run_scenario.py scenario1   # or scenario2 … scenario10
-python scripts/replay_scenario.py scenario2 3
+python -m agent_security run scenario1
+python -m agent_security replay scenario2 --runs 3
+python -m agent_security evaluate scenario5
+python -m agent_security results scenario5
 ```
 
-Live run and replay need a real `ANTHROPIC_API_KEY` in `.env`. Pytest and CI do not; CI sets a dummy key only so `Anthropic()` can be imported.
+`python scripts/agentsec.py` is the same CLI. `python scripts/run_scenario.py scenario1` and `python scripts/replay_scenario.py scenario2 3` still work as wrappers.
+
+Live run and replay need a real `ANTHROPIC_API_KEY` in `.env`. `evaluate` and `results` do not. Pytest and CI do not; CI sets a dummy key only so `Anthropic()` can be imported.
 
 Optional Docker isolation for live runs (pytest and GitHub Actions stay on the host):
 
 ```bash
 docker build -t agent-security-lab:latest .
-scripts/run_in_docker.sh scripts/run_scenario.py scenario5
-scripts/run_in_docker.sh scripts/replay_scenario.py scenario5 3
+scripts/run_in_docker.sh -m agent_security run scenario5
+scripts/run_in_docker.sh -m agent_security replay scenario5 --runs 3
 ```
 
 The wrapper starts one disposable container per invocation, including an entire replay batch. Writable container state such as `/tmp` therefore persists across iterations in that batch. Isolation covers host filesystem and process boundaries. Outbound network destinations are not restricted; Anthropic API egress is required. If Docker is unavailable, the wrapper exits with an error and does not fall back to host execution.
 
 ## Status
 
-Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, Pydantic-validated scenario config, SQLite experiment history alongside JSONL, an offline pytest suite, GitHub Actions on that suite, and optional Docker isolation for live runs. A third demonstrated family and a polished CLI are not built yet.
+Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, Pydantic-validated scenario config, SQLite experiment history alongside JSONL, an argparse CLI, an offline pytest suite, GitHub Actions on that suite, and optional Docker isolation for live runs. A third demonstrated family is not built yet.
 
 Internal notes: [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md)
