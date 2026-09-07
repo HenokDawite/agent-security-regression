@@ -63,6 +63,7 @@ Avoid claiming: "no one else does this" — established tools (Snyk's agent-scan
 - Anthropic API (`anthropic` package) as the agent being tested / attacked
 - `python-dotenv` for API key loading
 - Docker (optional isolation for live Anthropic + MCP runs; offline pytest/CI stay on the host)
+- Pydantic (strict validation of scenario configuration; live behavior unchanged)
 - pytest (deterministic evaluator, reset, replay-wiring, and clean-baseline regression tests in `tests/`)
 - SQLite or JSONL for run/trace/result storage (currently JSONL: `logs/trace_log.jsonl`, `logs/replay_log.jsonl`)
 - GitHub Actions (required offline pytest gate on push/PR; live replay is not the PR gate)

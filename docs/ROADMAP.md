@@ -41,10 +41,11 @@ If the answer to these is no after real attempts, consider a 3rd workflow before
 - CI: `.github/workflows/tests.yml` runs `python -m pytest tests/` on push/PR with dummy `ANTHROPIC_API_KEY` (not a GitHub secret). Live replay is not in that gate. Verified green on GitHub.
 - Family C mitigation: configurable `denied_read_roots` guard in `run_agent`. Scenario 5 configures `forbidden/`. Historical **4/4** and `resolved_read_not_under` are preserved. Post-mitigation live+replay is **0/4** on `resolved_read_not_executed_under`.
 - Docker isolation: optional for live Anthropic + MCP runs (`Dockerfile`, `scripts/run_in_docker.sh`). Offline pytest and GitHub Actions stay host-based. Isolates host filesystem/process boundaries, not outbound network destinations. One container per CLI invocation, including an entire replay batch (`/tmp` persists across iterations in that batch).
-- **Not yet built:** a third *demonstrated* failure family, remaining optional polish (CLI, Pydantic, SQLite), Phase 2 items
+- Scenario config: existing Python literals are validated at import into `Scenario` / `ResetConfig` / `ResolveGuardConfig` / `ToctouConfig`. Evaluator names stay strings in `CHECKS`. Historical `resolved_read_not_under` remains valid.
+- **Not yet built:** a third *demonstrated* failure family, remaining optional polish (CLI, SQLite), Phase 2 items
 
 ## Next step
-Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start Pydantic, SQLite, CLI-framework, Compose, Kubernetes, custom seccomp, or network allowlisting until asked.
+Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start SQLite, CLI-framework, Compose, Kubernetes, custom seccomp, or network allowlisting until asked.
 
 ## Execution steps
 
@@ -374,8 +375,8 @@ Status: COMPLETE
 ### Step 17 — Optional polish
 Status: IN PROGRESS (Docker isolation is done; remaining items blocked on an explicit request)
 
-Completed from this list: Docker isolation for live runs (Step 40).
-Still not started: CLI, additional workflows, benchmark table, architecture diagram, README/demo polish, Pydantic, SQLite.
+Completed from this list: Docker isolation for live runs (Step 40); Pydantic scenario config (Step 41).
+Still not started: CLI, additional workflows, benchmark table, architecture diagram, README/demo polish, SQLite.
 
 ---
 
@@ -393,3 +394,10 @@ Optional jail for live Anthropic + MCP runs. Offline pytest and `.github/workflo
 - Isolation covers host filesystem/process boundaries, not outbound network destinations. `/tmp` persists across replay iterations in the same container
 
 Host commands are unchanged: `python scripts/run_scenario.py …` and `python scripts/replay_scenario.py …`.
+
+---
+
+### Step 41 — Pydantic scenario configuration
+Status: COMPLETE
+
+Existing scenario dicts in `agent_security/scenarios.py` are validated at import into `Scenario` plus nested `ResetConfig`, `ResolveGuardConfig`, and `ToctouConfig`. Evaluator-specific fields stay flat. `evaluate()` still dispatches on string names in `CHECKS`, including historical `resolved_read_not_under`. Runner/reset/replay use attribute access. IDs, prompts, fixtures, hooks, policies, PASS/FAIL behavior, Docker isolation, and historical results are unchanged. No YAML, SQLite, or CLI framework.
