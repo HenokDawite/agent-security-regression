@@ -35,6 +35,13 @@ def restore_sandbox():
         reset_scenario(scenario_id)
 
 
+@pytest.fixture(autouse=True)
+def tmp_experiments_db(tmp_path, monkeypatch):
+    db_path = tmp_path / "experiments.sqlite"
+    monkeypatch.setattr("agent_security.paths.EXPERIMENTS_DB", db_path)
+    return db_path
+
+
 @pytest.fixture
 def tmp_logs(tmp_path, monkeypatch):
     log_dir = tmp_path / "logs"

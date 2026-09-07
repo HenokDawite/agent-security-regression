@@ -5,6 +5,7 @@ from agent_security.evaluators import PASS, evaluate
 from agent_security.paths import LOG_DIR, REPLAY_LOG, TRACE_LOG
 from agent_security.reset import ResetError, reset_scenario
 from agent_security.runner import get_scenario, run_scenario
+from agent_security.store import try_finish_batch, try_record_result, try_start_batch
 
 
 class ReplayError(Exception):
@@ -106,6 +107,9 @@ async def replay_scenario(scenario_id, n, run_fn=None):
     runs = []
     result = None
     main_error = None
+    terminal = None
+    abort_reason = None
+    batch_id = try_start_batch("replay", scenario, requested=n)
     try:
         for i in range(1, n + 1):
             try:
@@ -138,14 +142,36 @@ async def replay_scenario(scenario_id, n, run_fn=None):
             }
             runs.append(record)
             _record(record)
+            if batch_id is not None:
+                try_record_result(
+                    batch_id,
+                    i,
+                    record["verdict"],
+                    record["message"],
+                    pre_check=record["pre_check"],
+                    task_start=record["task_start"],
+                    window_start=record["window_start"],
+                    window_end=record["window_end"],
+                )
         result = summarize(scenario_id, runs)
+        terminal = "completed"
     except ReplayAbort as exc:
         main_error = exc
+        terminal = "aborted"
+        abort_reason = str(exc)
         print_aborted(scenario_id, n, runs, exc)
     except Exception as exc:
         main_error = exc
+        terminal = "aborted"
+        abort_reason = str(exc)
     finally:
         cleanup_error = _final_reset(scenario_id)
+
+    if cleanup_error is not None:
+        terminal = "cleanup_failed"
+        abort_reason = str(cleanup_error)
+    if batch_id is not None and terminal is not None:
+        try_finish_batch(batch_id, terminal, abort_reason)
 
     if result is not None and cleanup_error is None:
         return result

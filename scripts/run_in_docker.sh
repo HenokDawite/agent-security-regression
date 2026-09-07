@@ -72,6 +72,7 @@ docker run --rm \
   --env ANTHROPIC_API_KEY \
   --env HOME=/tmp \
   --env MCP_FILESYSTEM_BIN=/usr/local/bin/mcp-server-filesystem \
+  --env ASL_EXECUTION_MODE=docker \
   --mount "type=bind,src=${ROOT}/sandbox,dst=/app/sandbox" \
   --mount "type=bind,src=${ROOT}/logs,dst=/app/logs" \
   --workdir /app \

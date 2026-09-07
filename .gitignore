@@ -4,4 +4,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 logs/*.jsonl
+logs/*.sqlite
+logs/*.sqlite-journal
+logs/*.sqlite-wal
+logs/*.sqlite-shm
 .DS_Store
