@@ -36,16 +36,17 @@ If the answer to these is no after real attempts, consider a 3rd workflow before
 - Package layout: `agent_security/` (loop, runner, replay, reset, evaluators, scenarios, shared `paths.py`); entry points in `scripts/`
 - Shared paths: `REPO_ROOT`, `SANDBOX_DIR`, `LOG_DIR`, `ENV_PATH` in `agent_security/paths.py`
 - Commands: `python scripts/run_scenario.py scenarioN`; `python scripts/replay_scenario.py scenarioN N`; `python -m pytest tests/`; optional `scripts/run_in_docker.sh` for live runs
-- Logs: `logs/trace_log.jsonl`, `logs/replay_log.jsonl` (directory created on write)
+- Logs: `logs/trace_log.jsonl`, `logs/replay_log.jsonl` (directory created on write); live experiment history: `logs/experiments.sqlite`
 - Demonstrated-family count: **2 of 3–4** (Family A and Family C). Family B Scenario 4 **0/4**; Scenario 4b **0/4**. Family C Scenario 5 **4/4**. Family D Scenario 6 **0/4**. Family E Scenario 7 **0/4**. Family F Scenario 8 **0/4**. Family G Scenario 9 **0/4**. Family H Scenario 10 **0/4**. Existing A–G rates unchanged.
 - CI: `.github/workflows/tests.yml` runs `python -m pytest tests/` on push/PR with dummy `ANTHROPIC_API_KEY` (not a GitHub secret). Live replay is not in that gate. Verified green on GitHub.
 - Family C mitigation: configurable `denied_read_roots` guard in `run_agent`. Scenario 5 configures `forbidden/`. Historical **4/4** and `resolved_read_not_under` are preserved. Post-mitigation live+replay is **0/4** on `resolved_read_not_executed_under`.
 - Docker isolation: optional for live Anthropic + MCP runs (`Dockerfile`, `scripts/run_in_docker.sh`). Offline pytest and GitHub Actions stay host-based. Isolates host filesystem/process boundaries, not outbound network destinations. One container per CLI invocation, including an entire replay batch (`/tmp` persists across iterations in that batch).
 - Scenario config: existing Python literals are validated at import into `Scenario` / `ResetConfig` / `ResolveGuardConfig` / `ToctouConfig`. Evaluator names stay strings in `CHECKS`. Historical `resolved_read_not_under` remains valid.
-- **Not yet built:** a third *demonstrated* failure family, remaining optional polish (CLI, SQLite), Phase 2 items
+- Experiment history: optional SQLite (`logs/experiments.sqlite`) complements JSONL. `run_scenario.py` owns single-run batches; `replay.py` owns replay batches. Historical Family C rates are not seeded. CI stays offline pytest.
+- **Not yet built:** a third *demonstrated* failure family, remaining optional polish (CLI), Phase 2 items
 
 ## Next step
-Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start SQLite, CLI-framework, Compose, Kubernetes, custom seccomp, or network allowlisting until asked.
+Do not start Family I. Do not overwrite the historical Family C **4/4**. Do not start CLI-framework, Compose, Kubernetes, custom seccomp, or network allowlisting until asked.
 
 ## Execution steps
 
@@ -375,8 +376,8 @@ Status: COMPLETE
 ### Step 17 — Optional polish
 Status: IN PROGRESS (Docker isolation is done; remaining items blocked on an explicit request)
 
-Completed from this list: Docker isolation for live runs (Step 40); Pydantic scenario config (Step 41).
-Still not started: CLI, additional workflows, benchmark table, architecture diagram, README/demo polish, SQLite.
+Completed from this list: Docker isolation for live runs (Step 40); Pydantic scenario config (Step 41); SQLite experiment history (Step 42).
+Still not started: CLI, additional workflows, benchmark table, architecture diagram, README/demo polish.
 
 ---
 
@@ -400,4 +401,11 @@ Host commands are unchanged: `python scripts/run_scenario.py …` and `python sc
 ### Step 41 — Pydantic scenario configuration
 Status: COMPLETE
 
-Existing scenario dicts in `agent_security/scenarios.py` are validated at import into `Scenario` plus nested `ResetConfig`, `ResolveGuardConfig`, and `ToctouConfig`. Evaluator-specific fields stay flat. `evaluate()` still dispatches on string names in `CHECKS`, including historical `resolved_read_not_under`. Runner/reset/replay use attribute access. IDs, prompts, fixtures, hooks, policies, PASS/FAIL behavior, Docker isolation, and historical results are unchanged. No YAML, SQLite, or CLI framework.
+Existing scenario dicts in `agent_security/scenarios.py` are validated at import into `Scenario` plus nested `ResetConfig`, `ResolveGuardConfig`, and `ToctouConfig`. Evaluator-specific fields stay flat. `evaluate()` still dispatches on string names in `CHECKS`, including historical `resolved_read_not_under`. Runner/reset/replay use attribute access. IDs, prompts, fixtures, hooks, policies, PASS/FAIL behavior, Docker isolation, and historical results are unchanged. No YAML or CLI framework.
+
+---
+
+### Step 42 — SQLite experiment history
+Status: COMPLETE
+
+`logs/experiments.sqlite` stores live invocation batches (`run_batches`) and completed evaluations (`run_results`). JSONL traces and replay records are unchanged. Schema version 1 via `PRAGMA user_version`. `scripts/run_scenario.py` owns single-run batches; `replay.py` owns replay batches. Database errors are reported and do not change PASS/FAIL. Historical Family C rows are not seeded. Docker sets `ASL_EXECUTION_MODE=docker` and persists the DB through the existing `logs/` mount. `ASL_EXECUTION_MODE` is `host` when unset, or `host`/`docker` when set; any other value is a configuration error. Batches start as `running` and finish as `completed`, `aborted`, or `cleanup_failed`. `running` can remain after an abrupt process exit or a failed finalization write.

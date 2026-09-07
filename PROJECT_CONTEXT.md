@@ -65,7 +65,7 @@ Avoid claiming: "no one else does this" — established tools (Snyk's agent-scan
 - Docker (optional isolation for live Anthropic + MCP runs; offline pytest/CI stay on the host)
 - Pydantic (strict validation of scenario configuration; live behavior unchanged)
 - pytest (deterministic evaluator, reset, replay-wiring, and clean-baseline regression tests in `tests/`)
-- SQLite or JSONL for run/trace/result storage (currently JSONL: `logs/trace_log.jsonl`, `logs/replay_log.jsonl`)
+- SQLite or JSONL for run/trace/result storage (JSONL traces stay in `logs/trace_log.jsonl` and `logs/replay_log.jsonl`; live experiment history is `logs/experiments.sqlite`)
 - GitHub Actions (required offline pytest gate on push/PR; live replay is not the PR gate)
 - Click or Typer (planned, for the CLI, once the harness is generalized past hand-coded scripts)
 

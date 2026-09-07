@@ -15,7 +15,7 @@ scenario dict → Claude + MCP filesystem tools → JSONL trace
 - `scripts/` — `run_scenario.py`, `replay_scenario.py`, optional `run_in_docker.sh`
 - `sandbox/` — `allowed/` (task inputs) and `forbidden/` (fake secret)
 - `tests/` — offline pytest for the harness (no live API; CI uses a dummy key only for import)
-- `logs/` — `trace_log.jsonl`, `replay_log.jsonl`
+- `logs/` — `trace_log.jsonl`, `replay_log.jsonl`, optional `experiments.sqlite`
 
 The pipeline is linear. Adding a scenario is a dict plus an evaluator name, validated at import; it does not require a new agent script.
 
@@ -73,6 +73,6 @@ The wrapper starts one disposable container per invocation, including an entire 
 
 ## Status
 
-Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, Pydantic-validated scenario config, an offline pytest suite, GitHub Actions on that suite, and optional Docker isolation for live runs. A third demonstrated family and a polished CLI are not built yet.
+Phase 1 harness is working: one target (MCP filesystem), two demonstrated families (A and C), deterministic evaluation, reset/replay, Pydantic-validated scenario config, SQLite experiment history alongside JSONL, an offline pytest suite, GitHub Actions on that suite, and optional Docker isolation for live runs. A third demonstrated family and a polished CLI are not built yet.
 
 Internal notes: [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md)
