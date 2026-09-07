@@ -8,7 +8,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 IMAGE="${ASL_IMAGE:-agent-security-lab:latest}"
 
 usage() {
-  echo "Usage: scripts/run_in_docker.sh scripts/run_scenario.py scenarioN" >&2
+  echo "Usage: scripts/run_in_docker.sh -m agent_security run scenarioN" >&2
+  echo "       scripts/run_in_docker.sh -m agent_security replay scenarioN --runs N" >&2
+  echo "       scripts/run_in_docker.sh scripts/run_scenario.py scenarioN" >&2
   echo "       scripts/run_in_docker.sh scripts/replay_scenario.py scenarioN N" >&2
   echo "Docker isolates host filesystem/process boundaries, not outbound network destinations." >&2
   exit 2

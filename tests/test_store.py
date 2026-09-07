@@ -12,6 +12,7 @@ from agent_security.store import (
     SCHEMA_VERSION,
     StoreError,
     connect,
+    connect_readonly,
     execution_mode,
     fetch_batches,
     fetch_results,
@@ -54,6 +55,20 @@ def test_schema_user_version(tmp_experiments_db):
         conn.close()
     assert version == SCHEMA_VERSION
     assert foreign == 1
+
+
+def test_connect_readonly_rejects_writes(tmp_experiments_db):
+    start_batch("single", SCENARIOS["scenario1"], requested=1)
+    conn = connect_readonly()
+    try:
+        with pytest.raises(sqlite3.OperationalError, match="readonly"):
+            conn.execute(
+                "UPDATE run_batches SET status = 'completed' WHERE id = id"
+            )
+            conn.commit()
+    finally:
+        conn.close()
+    assert fetch_batches(readonly=True)[0]["status"] == "running"
 
 
 def test_execution_mode_docker(tmp_experiments_db, monkeypatch):

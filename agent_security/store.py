@@ -78,6 +78,24 @@ def connect(db_path=None):
     return conn
 
 
+def connect_readonly(db_path=None):
+    path = Path(db_path) if db_path is not None else get_db_path()
+    if not path.exists():
+        raise FileNotFoundError(path)
+    uri = path.resolve().as_uri() + "?mode=ro"
+    conn = sqlite3.connect(uri, uri=True)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    current = conn.execute("PRAGMA user_version").fetchone()[0]
+    if current != SCHEMA_VERSION:
+        conn.close()
+        raise StoreError(
+            f"unsupported experiments.sqlite schema version {current}; "
+            f"expected {SCHEMA_VERSION}"
+        )
+    return conn
+
+
 def _init_schema(conn):
     conn.executescript(
         """
@@ -284,8 +302,8 @@ async def run_standalone(scenario_id, run_fn, task_start_fn=None):
     return result
 
 
-def fetch_batches(db_path=None):
-    conn = connect(db_path)
+def fetch_batches(db_path=None, readonly=False):
+    conn = connect_readonly(db_path) if readonly else connect(db_path)
     try:
         rows = conn.execute(
             "SELECT * FROM run_batches ORDER BY started_at, id"
@@ -295,8 +313,8 @@ def fetch_batches(db_path=None):
         conn.close()
 
 
-def fetch_results(batch_id=None, db_path=None):
-    conn = connect(db_path)
+def fetch_results(batch_id=None, db_path=None, readonly=False):
+    conn = connect_readonly(db_path) if readonly else connect(db_path)
     try:
         if batch_id is None:
             rows = conn.execute(

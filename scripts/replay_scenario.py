@@ -1,24 +1,29 @@
-import asyncio
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from agent_security.replay import ReplayAbort, ReplayError, replay_scenario
+from agent_security.cli import main as cli_main
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python scripts/replay_scenario.py scenario1|scenario2|scenario3|scenario4|scenario4b|scenario5|scenario6|scenario7|scenario8|scenario9|scenario10 N")
-        raise SystemExit(2)
+USAGE = (
+    "Usage: python scripts/replay_scenario.py "
+    "scenario1|scenario2|scenario3|scenario4|scenario4b|scenario5|"
+    "scenario6|scenario7|scenario8|scenario9|scenario10 N"
+)
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) != 2:
+        print(USAGE)
+        return 2
     try:
-        n = int(sys.argv[2])
+        int(argv[1])
     except ValueError:
         print("N must be an integer")
-        raise SystemExit(2)
-    try:
-        asyncio.run(replay_scenario(sys.argv[1], n))
-    except ReplayAbort:
-        raise SystemExit(1)
-    except ReplayError as exc:
-        print(exc)
-        raise SystemExit(1)
+        return 2
+    return cli_main(["replay", argv[0], "--runs", argv[1]])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
