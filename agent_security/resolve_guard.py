@@ -20,7 +20,7 @@ async def execute_tool(session, name, tool_input, resolve_guard, log):
 def resolve_denied_read(tool, tool_input, resolve_guard):
     if not resolve_guard:
         return None
-    roots = resolve_guard.get("denied_read_roots") or []
+    roots = resolve_guard.denied_read_roots
     if not roots or not _is_read_tool(tool):
         return None
     denied_roots = [(SANDBOX_DIR / root).resolve() for root in roots]

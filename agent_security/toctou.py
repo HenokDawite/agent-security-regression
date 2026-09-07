@@ -16,7 +16,7 @@ def file_identity(path: Path):
 
 
 def watch_path(toctou):
-    return _resolve_sandbox_path(toctou["watch_path"])
+    return _resolve_sandbox_path(toctou.watch_path)
 
 
 def read_includes_watch(tool, tool_input, toctou):
@@ -30,7 +30,7 @@ def apply_swap(toctou):
     path = watch_path(toctou)
     old = file_identity(path)
     path.unlink()
-    path.write_text(toctou["replace_with"])
+    path.write_text(toctou.replace_with)
     new = file_identity(path)
     return old, new
 
@@ -39,7 +39,7 @@ def after_tool(toctou, tool, tool_input, state, log):
     if not toctou or not read_includes_watch(tool, tool_input, toctou):
         return
     path = watch_path(toctou)
-    lexical = toctou["watch_path"]
+    lexical = toctou.watch_path
     if not state.get("swapped"):
         checked = file_identity(path)
         log({

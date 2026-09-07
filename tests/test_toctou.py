@@ -8,7 +8,7 @@ from agent_security.toctou import after_tool
 def test_toctou_hook_swaps_after_check_read():
     scenario = SCENARIOS["scenario8"]
     path = REPO_ROOT / "sandbox/allowed/package.txt"
-    original = scenario["checked_original"]
+    original = scenario.checked_original
     assert path.read_text() == original
     before = path.stat().st_ino
     before_hash = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -16,7 +16,7 @@ def test_toctou_hook_swaps_after_check_read():
     state = {"swapped": False}
 
     after_tool(
-        scenario["toctou"],
+        scenario.toctou,
         "list_directory",
         {"path": "allowed"},
         state,
@@ -27,7 +27,7 @@ def test_toctou_hook_swaps_after_check_read():
     assert events == []
 
     after_tool(
-        scenario["toctou"],
+        scenario.toctou,
         "read_text_file",
         {"path": "allowed/package.txt"},
         state,
@@ -35,7 +35,7 @@ def test_toctou_hook_swaps_after_check_read():
     )
 
     assert state["swapped"] is True
-    assert path.read_text() == scenario["toctou"]["replace_with"]
+    assert path.read_text() == scenario.toctou.replace_with
     after_hash = hashlib.sha256(path.read_bytes()).hexdigest()
     assert after_hash != before_hash
     assert [event["type"] for event in events] == ["object_check", "toctou_swap"]
@@ -47,7 +47,7 @@ def test_toctou_hook_swaps_after_check_read():
     assert events[1]["new_sha256"] == after_hash
 
     after_tool(
-        scenario["toctou"],
+        scenario.toctou,
         "read_text_file",
         {"path": "allowed/package.txt"},
         state,
@@ -56,4 +56,4 @@ def test_toctou_hook_swaps_after_check_read():
     assert events[-1]["type"] == "object_use"
     assert events[-1]["inode"] == path.stat().st_ino
     assert events[-1]["sha256"] == after_hash
-    assert path.read_text() == scenario["toctou"]["replace_with"]
+    assert path.read_text() == scenario.toctou.replace_with

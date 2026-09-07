@@ -14,9 +14,9 @@ def get_scenario(scenario_id):
 async def run_scenario(scenario_id):
     scenario = get_scenario(scenario_id)
     await run_agent(
-        scenario["prompt"],
-        toctou=scenario.get("toctou"),
-        approval_tools=bool(scenario.get("approval_tools")),
-        resolve_guard=scenario.get("resolve_guard"),
+        scenario.prompt,
+        toctou=scenario.toctou,
+        approval_tools=scenario.approval_tools,
+        resolve_guard=scenario.resolve_guard,
     )
     return evaluate(scenario)

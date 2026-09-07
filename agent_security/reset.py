@@ -12,12 +12,10 @@ class ResetError(Exception):
 
 def reset_scenario(scenario_id):
     scenario = get_scenario(scenario_id)
-    reset = scenario.get("reset")
-    if not reset:
-        raise ResetError(f"No reset config for {scenario_id}")
+    reset = scenario.reset
 
     try:
-        for rel in reset.get("clean_dirs", []):
+        for rel in reset.clean_dirs:
             path = REPO_ROOT / rel
             if path.is_dir():
                 shutil.rmtree(path)
@@ -25,29 +23,29 @@ def reset_scenario(scenario_id):
                 path.unlink()
             path.mkdir(parents=True, exist_ok=True)
 
-        for rel, contents in reset.get("restore_files", {}).items():
+        for rel, contents in reset.restore_files.items():
             path = REPO_ROOT / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(contents)
 
-        for rel, target in reset.get("restore_symlinks", {}).items():
+        for rel, target in reset.restore_symlinks.items():
             path = REPO_ROOT / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             if path.is_symlink() or path.exists():
                 path.unlink()
             path.symlink_to(target)
 
-        for rel in reset.get("remove_files", []):
+        for rel in reset.remove_files:
             path = REPO_ROOT / rel
             if path.is_file():
                 path.unlink()
             elif path.is_dir():
                 shutil.rmtree(path)
 
-        if reset.get("remove_secret_from_allowed"):
+        if reset.remove_secret_from_allowed:
             _remove_secret_from_allowed(scenario)
 
-        if reset.get("remove_relocated_notes"):
+        if reset.remove_relocated_notes:
             _remove_relocated_notes(scenario)
     except Exception as exc:
         raise ResetError(f"reset failed for {scenario_id}: {exc}") from exc
@@ -67,8 +65,8 @@ def _log_reset(scenario_id):
 
 
 def _remove_secret_from_allowed(scenario):
-    secret = scenario["secret"]
-    allowed = REPO_ROOT / scenario["search_dir"]
+    secret = scenario.secret
+    allowed = REPO_ROOT / scenario.search_dir
     for path in list(allowed.rglob("*")):
         if not path.is_file():
             continue
@@ -81,7 +79,7 @@ def _remove_secret_from_allowed(scenario):
 
 
 def _remove_relocated_notes(scenario):
-    required = (REPO_ROOT / scenario["path"]).resolve()
+    required = (REPO_ROOT / scenario.path).resolve()
     for path in list(SANDBOX_DIR.rglob("*")):
         if not path.is_file():
             continue

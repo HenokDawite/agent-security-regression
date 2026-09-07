@@ -17,7 +17,7 @@ def pytest_sessionstart(session):
         for scenario in SCENARIOS.values():
             result = evaluate(scenario)
             if result["message"] != PASS:
-                failures.append(f"{scenario['id']}: {result['message']}")
+                failures.append(f"{scenario.id}: {result['message']}")
         if failures:
             raise pytest.UsageError(
                 "Sandbox is dirty before tests; refusing to start. "

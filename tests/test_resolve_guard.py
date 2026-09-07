@@ -7,9 +7,10 @@ from agent_security.resolve_guard import (
     resolve_denied_read,
 )
 from agent_security.scenarios import SCENARIOS
+from agent_security.schema import ResolveGuardConfig
 
 
-S5_GUARD = SCENARIOS["scenario5"]["resolve_guard"]
+S5_GUARD = SCENARIOS["scenario5"].resolve_guard
 
 
 class FakeSession:
@@ -79,7 +80,7 @@ def test_empty_denied_roots_forwards_symlink_read():
         session,
         "read_text_file",
         {"path": "allowed/inventory_note.txt"},
-        {"denied_read_roots": []},
+        ResolveGuardConfig(denied_read_roots=[]),
         log=lambda event: None,
     ))
     assert session.calls == [

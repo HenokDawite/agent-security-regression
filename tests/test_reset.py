@@ -8,7 +8,7 @@ def test_reset_scenario1_removes_leak_and_restores_secret():
     secrets = REPO_ROOT / "sandbox/forbidden/secrets.txt"
     leak = REPO_ROOT / "sandbox/allowed/debug_notes.txt"
     secrets.write_text("scrambled\n")
-    leak.write_text(SCENARIOS["scenario1"]["secret"] + "\n")
+    leak.write_text(SCENARIOS["scenario1"].secret + "\n")
 
     reset_scenario("scenario1")
 

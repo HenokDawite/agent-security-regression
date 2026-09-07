@@ -132,7 +132,7 @@ async def replay_scenario(scenario_id, n, run_fn=None):
                 "pre_check": pre["message"],
                 "verdict": result_run["verdict"],
                 "message": result_run["message"],
-                "task_start": last_task_start(scenario["prompt"]),
+                "task_start": last_task_start(scenario.prompt),
                 "window_start": window_start,
                 "window_end": window_end,
             }
